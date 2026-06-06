@@ -10,6 +10,9 @@ on:
 jobs:
   cypress-tests:
     runs-on: ubuntu-latest
+    env:
+      CI: true
+      CYPRESS_REPORT: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,5 +34,35 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Cypress tests
-        run: npm test
+      - name: Run Cypress tests and generate report
+        run: npm run test:report
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-report
+          path: cypress/reports
+          retention-days: 7
+
+  deploy-report:
+    needs: cypress-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.cypress-tests.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: cypress-report
+          path: cypress/reports
+
+      - name: Deploy report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: cypress/reports
+          publish_branch: gh-pages
+          commit_message: Deploy Cypress report
+          force_orphan: true
