@@ -1,11 +1,13 @@
 const { defineConfig } = require("cypress");
 
+const isReportRun = process.env.CYPRESS_REPORT === "true";
+
 module.exports = defineConfig({
   e2e: {
     baseUrl: "https://example.cypress.io",
     specPattern: "cypress/e2e/**/*.cy.js",
     supportFile: "cypress/support/e2e.js",
-    video: true,
+    video: !process.env.CI,
     screenshotOnRunFailure: true,
     defaultCommandTimeout: 10000,
     pageLoadTimeout: 60000,
@@ -17,11 +19,13 @@ module.exports = defineConfig({
       return config;
     },
   },
-  reporter: "mochawesome",
-  reporterOptions: {
-    reportDir: "cypress/reports",
-    overwrite: false,
-    html: true,
-    json: false,
-  },
+  reporter: isReportRun ? "mochawesome" : "spec",
+  reporterOptions: isReportRun
+    ? {
+        reportDir: "cypress/reports",
+        overwrite: false,
+        html: false,
+        json: true,
+      }
+    : undefined,
 });

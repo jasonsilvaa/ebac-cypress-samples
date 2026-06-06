@@ -3,21 +3,25 @@
   "version": "1.0.0",
   "description": "Default Cypress Tests",
   "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "postinstall": "cypress install",
     "test": "cypress run",
-    "test:report": "cypress run",
+    "pretest:report": "rm -rf cypress/reports && mkdir -p cypress/reports",
+    "test:report": "CYPRESS_REPORT=true cypress run && npm run report:merge",
+    "report:merge": "mochawesome-merge cypress/reports/mochawesome*.json -o cypress/reports/mochawesome.json && marge cypress/reports/mochawesome.json -o cypress/reports -f index",
     "cypress:open": "cypress open",
     "cypress:install": "cypress install"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "cypress": "^15.1.0"
-  },
   "devDependencies": {
+    "cypress": "^15.1.0",
     "mochawesome": "^7.1.3",
+    "mochawesome-merge": "^4.4.1",
     "mochawesome-report-generator": "^6.2.0"
   }
 }
